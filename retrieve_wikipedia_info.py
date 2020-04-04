@@ -1,10 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[2]:
-
-
-from bs4 import BeautifulSoup
 import requests
 from datetime import datetime
 

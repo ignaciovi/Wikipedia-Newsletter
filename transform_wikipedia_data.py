@@ -1,12 +1,6 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[2]:
-
-
 from bs4 import BeautifulSoup
 
-def load_transform_wikipedia_data(data):
+def transform_wikipedia_data(data):
     soup = BeautifulSoup(data, "html.parser")
     div = soup.find('div', {'class': 'mw-parser-output'})
     children = div.findChildren("ul" , recursive=False)
@@ -17,4 +11,3 @@ def load_transform_wikipedia_data(data):
         output = output + tag.text
 
     return output
-

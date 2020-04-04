@@ -1,6 +1,6 @@
 import time
 from retrieve_wikipedia_info import retrieve_wikipedia_info
-from transform_load_wikipedia_data import load_transform_wikipedia_data
+from transform_wikipedia_data import transform_wikipedia_data
 import luigi
 
 
@@ -31,7 +31,7 @@ class NameSubstituter(luigi.Task):
     def run(self):
         with self.input().open() as infile, self.output().open('w') as outfile:
             text = infile.read()
-            output_text = load_transform_wikipedia_data(text)
+            output_text = transform_wikipedia_data(text)
             outfile.write(output_text)
 
 
