@@ -1,5 +1,7 @@
 import requests
 from datetime import datetime
+from bs4 import BeautifulSoup
+import re
 
 def retrieve_wikipedia_info():
     current_date = datetime.now().strftime('%B_%#d')
