@@ -10,7 +10,7 @@ def retrieve_wikipedia_info():
 
     html_content = requests.get(url).text
 
-    html_content_format = str(html_content.encode('utf8'))
+    html_content_format = str(html_content)
 
     # Add error handling?
 

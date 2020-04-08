@@ -7,8 +7,6 @@ def transform_wikipedia_data(data):
     children = div.findChildren("ul" , recursive=False)
     
     tdTags = children[0].find_all("li")
-    output = ""
-    for tag in tdTags:
-        output = output + re.sub(r'\\xe2\\x80\\x93',' ', tag.text)
+    output = [tag.text.split(" – ") for tag in tdTags]
 
     return output
