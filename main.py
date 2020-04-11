@@ -6,7 +6,6 @@ import time
 from datetime import datetime
 from retrieve_wikipedia_info import retrieve_wikipedia_info
 from transform_wikipedia_data import transform_wikipedia_data
-from load_wikipedia_data import load_wikipedia_data
 from luigi.contrib.postgres import PostgresTarget
 from csv import reader
 from luigi.format import UTF8
@@ -14,7 +13,7 @@ from config import config
 
 
 # Task A
-# Fetch data from wikipedia and store it in file
+# Fetch data from wikipedia and store it in txt file
 class RetrieveWikipediaInfo(luigi.Task):
     def requires(self):
         return None
@@ -28,7 +27,7 @@ class RetrieveWikipediaInfo(luigi.Task):
             outfile.write(wikipedia_info_content)
 
 # Task B
-# Retrieve data from html file
+# Clean data, retrieve event information and store in csv file
 class TransformWikipediaInfo(luigi.Task):
     def requires(self):
         return RetrieveWikipediaInfo()
@@ -46,6 +45,8 @@ class TransformWikipediaInfo(luigi.Task):
             for el in output_array:
                 writer.writerow({'year': el[0], 'event': el[1]})
 
+# Task C
+# Load csv file from previous task into an SQL database
 class LoadWikipediaInfoSQL(luigi.Task):
     def requires(self):
         return TransformWikipediaInfo()
@@ -64,7 +65,6 @@ class LoadWikipediaInfoSQL(luigi.Task):
 
         with self.input().open() as infile:
             csv_reader = reader(infile)
-            # Iterate over each row in the csv using reader object
             for row in csv_reader:
                 if row[1] != "event":
                     query = u"INSERT INTO wikitimeboxdata (year, event) VALUES ('{}', '{}')".format(row[0], row[1].replace("'", ""))
@@ -73,11 +73,8 @@ class LoadWikipediaInfoSQL(luigi.Task):
                     # Update marker table
                     self.output().touch(connection)
 
-                # commit and close connection
                 connection.commit()
             connection.close()
-
-
-            
+          
 if __name__ == '__main__':
     luigi.run()
