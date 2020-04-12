@@ -1,15 +1,18 @@
 from configparser import ConfigParser
 import time
 
-def config(filename='database.ini', section='postgresql'):
+def config(section, filename='params.ini'):
     # create a parser
     parser = ConfigParser()
     # read config file
     parser.read(filename)
  
     # get section, default to postgresql
-    db = {'update_id': str(time.time())}
-    # db = {}
+    if section == 'postgresql':
+        db = {'update_id': str(time.time())}
+    else:
+        db = {}
+
     if parser.has_section(section):
         params = parser.items(section)
         for param in params:

@@ -1,8 +1,8 @@
 import time
-import luigi
 import psycopg2
 import csv
 import time
+import luigi
 from datetime import datetime
 from retrieve_wikipedia_info import retrieve_wikipedia_info
 from transform_wikipedia_data import transform_wikipedia_data
@@ -10,7 +10,8 @@ from luigi.contrib.postgres import PostgresTarget
 from csv import reader
 from luigi.format import UTF8
 from config import config
-
+from luigi.contrib.s3 import S3Target, S3Client
+from time import strftime
 
 # Task A
 # Fetch data from wikipedia and store it in txt file
@@ -19,7 +20,9 @@ class RetrieveWikipediaInfo(luigi.Task):
         return None
  
     def output(self):
-        return luigi.LocalTarget('wikipedia_info_api.txt', format=UTF8)
+        params = config(section='s3')
+        client = S3Client(**params)
+        return S3Target('s3://s3-bucket-wikidata/{}/wikipedia_info_api.txt'.format(strftime("%Y-%m-%d")), format=UTF8, client=client)
  
     def run(self):
         wikipedia_info_content = retrieve_wikipedia_info()
@@ -33,10 +36,12 @@ class TransformWikipediaInfo(luigi.Task):
         return RetrieveWikipediaInfo()
 
     def output(self):
-        return luigi.LocalTarget('wikipedia_info_output.csv')
+        params = config(section='s3')
+        client = S3Client(**params)
+        return S3Target('s3://s3-bucket-wikidata/{}/wikipedia_info_output.csv'.format(strftime("%Y-%m-%d")), format=UTF8, client=client)
 
     def run(self):
-        with self.input().open() as infile, self.output().open('wb') as outfile:
+        with self.input().open() as infile, self.output().open('w') as outfile:
             fieldnames = ['year', 'event']
             writer = csv.DictWriter(outfile, delimiter=',', lineterminator='\n', fieldnames=fieldnames)
             writer.writeheader()
@@ -52,10 +57,8 @@ class LoadWikipediaInfoSQL(luigi.Task):
         return TransformWikipediaInfo()
         
     def output(self):
-        params = config()
-        return PostgresTarget(
-            **params
-        )
+        params = config(section='postgresql')
+        return PostgresTarget(**params)
 
     def  run(self):
         output=self.output()
@@ -67,7 +70,7 @@ class LoadWikipediaInfoSQL(luigi.Task):
             csv_reader = reader(infile)
             for row in csv_reader:
                 if row[1] != "event":
-                    query = u"INSERT INTO wikitimeboxdata (year, event) VALUES ('{}', '{}')".format(row[0], row[1].replace("'", ""))
+                    query = u"INSERT INTO wiki_timebox_data (year, event) VALUES ('{}', '{}')".format(row[0], row[1].replace("'", ""))
                     cursor.execute(query)
 
                     # Update marker table
