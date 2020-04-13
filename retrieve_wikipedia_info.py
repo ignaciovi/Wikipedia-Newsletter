@@ -1,9 +1,11 @@
 import requests
+import re
 from datetime import datetime
 from bs4 import BeautifulSoup
-import re
 
 def retrieve_wikipedia_info():
+    '''Retrieve html wikipedia page'''
+
     current_date = datetime.now().strftime('%B_%#d')
 
     url="https://en.wikipedia.org/wiki/Wikipedia:Selected_anniversaries/{}".format(current_date)
@@ -12,7 +14,7 @@ def retrieve_wikipedia_info():
 
     html_content_format = str(html_content)
 
-    # Add error handling?
+    #TODO Add error handling?
 
     return html_content_format
 
