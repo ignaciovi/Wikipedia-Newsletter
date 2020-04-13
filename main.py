@@ -1,5 +1,4 @@
 import time
-import psycopg2
 import csv
 import luigi
 from datetime import datetime
