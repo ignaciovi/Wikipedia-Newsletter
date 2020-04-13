@@ -1,7 +1,6 @@
 import time
 import psycopg2
 import csv
-import time
 import luigi
 from datetime import datetime
 from retrieve_wikipedia_info import retrieve_wikipedia_info
