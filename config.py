@@ -1,7 +1,7 @@
 from configparser import ConfigParser
 import time
 
-def config(section, filename='params.ini'):
+def config(section, filename='luigi.cfg'):
     # create a parser
     parser = ConfigParser()
     # read config file
