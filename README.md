@@ -53,29 +53,62 @@ I decided to use RDS because one of my objectives was to learn proper SQL and ch
 Instead of RDS, I could have used EC2 and installed a database there, but I decided to go for the RDS directly, mainly because AWS already facilitates RDS to use directly a database and I didn't see the point on spending time on configuring it in a virtual server. The only advantage would be that I would have more control over it, but for my case RDS is just fine.
 
 
+## ETL
+In this se
+
+Some tips to create proper ETLs
+- If we had to add data to the database everyday, we would do it incrementally, based on the last time the system extracted data.
+Most incremental extract scenarios use a last date modified/timestamp column.
+- If you’re extracting during the day/normal business hours, your extract queries can’t disrupt the existing OLTP processes (transactions).
+- Capturing Periodic Snapshots of Data is essential to achieve Durability (ACID)
+- Coming up with messaging and alert procedures so that any fatal error or verification failure triggered phone calls
+
 
 ## Concepts learned
 Finally, I wanted to talk about other concepts learned in this project
 
 I learned about the 3 Vs (Verity, velocity, and volume).
-AWS which may not be a worry in this small project but are good to keep in mind!
+Basically, volume refers to the amount of data, variety refers to the number of types of data and velocity refers to the speed of data processing. According to the 3Vs model, the challenges of big data management result from the expansion of all three properties, rather than just the volume alone.
+Using AWS, we require minimal maintenance. Cloud Service Providers will auto-scale for us and eventually lead to less maintenance and cost. AWS can help us managing the 3Vs until certain point, but it is also important to create optimal pipelines and not to do something that is not needed!
+Here is important to ask: do I need to retrieve this data? how often do I need to retrieve it?
+In this stage, it is important also to consider the analytics part of it and understand if what we are retrieving is what we really need.
 
-HA (High Availability): A Cloud Databases HA instance group includes a source database instance and one or two replicas. If main fails, other will take the place until main is restored
+In this case we don't need to worry about these concepts, but it is good to keep them in mind!
+
+---
+
+HA (High Availability): A Cloud Databases HA instance group includes a source database instance and one or two replicas. If main fails, other will take the place until main is restored. It is important to create plan B, C, D in case something bad happens. We have to consider all possible failure scenarios. AWS facilitates snapshots, but we have to be proactive and do constant backups of our data (enough data to fix something if it recently failed, but not too much data that would conflict with the 3 Vs (volume in particular))
+
+---
 
 To have optimal transaction control, a database system must be ACID compliant, which stands for the following properties: Atomicity, Consistency, Isolation, Durability
 
-**Atomicity**: We cant send a transaction that is half complete. Black or white. A transaction must be completed. If it stops at midoperation, it will not be done. 
+**Atomicity**: We cant send a transaction that is half complete. If it stops at the middle of the operation, it will not be done. 
 
-**Consistency**: All data must be consistent after every transaction. Database has always to be consistent. Any data written to the database must be valid according to all defined rules and constraints. Follow the rules
+**Consistency**: All data must be consistent after every transaction. It has to follow the rules and constraints established.
 
 **Isolation**: Each transaction must occur independently of other transactions occurring at the same time.
 
-**Durability**: Committed transactions must be fully recoverable in all but the most extreme circumstances. Write-ahead logs provide absolute data durability until data is eventually written into permanent data and index files. Durability can be achieved by flushing the transaction's log records to non-volatile storage before acknowledging commitment.
+**Durability**: Committed transactions must be fully recoverable in all but the most extreme circumstances. Durability can be achieved by using logs in every possible action performed
 
-### Pipeline framework selection
-We use Luigi
+In my case, I am doing 5 inserts in a table each day (one for each of the events displayed). A good method to deal with Atomicity would be to make sure that the 5 insertions have been completed successfully. We don't want to have this task completed at half.
+In order to achieve Durability we would need to log every transaction made. Consistency and Isolation are already achieved.
 
+---
 
-### Pipeline structure
-Staging step
-Loading step
+**STAR schema**
+STAR schema is the most widely approach used to develop data warehouses. It is divided into:
+- Fact tables: contain the measures that users want to aggregate. E.g a sale that includes customerId, dateId, productSoldId, cost
+- Dimension tables contain the master table business entities. E.g. there is a table for customer information with columns: customerId, customerName, customerLastName, customerAddress
+- We link fact tables with dimension tables via a key. In the example above we would use customerId to link both
+
+---
+
+**Loading and staging phases**
+//TODO
+
+---
+
+**SQL**
+Composable DML, allows you to take data from the OUTPUT clause of a DML (i.e., INSERT, UPDATE, DELETE) statement, use it as a derived table, and insert it into another table. 
+MERGE combines the features of an INSERT and an UPDATE into one statement
