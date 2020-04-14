@@ -54,14 +54,42 @@ Instead of RDS, I could have used EC2 and installed a database there, but I deci
 
 
 ## ETL
-In this se
+In this section I'm going to discuss the jobs that take part in the Wikipedia TimeBox pipeline:
+- RetrieveWikipediaInfo: Retrieves HTML from Wikipedia page and stores it in a txt in S3
+- TransformWikipediaInfo: gets previous txt, transforms it and retrieves the 5 events that are stored in a CSV in S3. This will have two columns: year and event
+- LoadWikipediaInfoSQL: get previous CSV and iterate over it to store the data in a PostgreSQL database
 
-Some tips to create proper ETLs
+The job is stored in EC2 which was configured to run main.py everyday.
+
+Senior data engineer Rashmi Shamprasad summarises ETL pipelines as follows:
+- Always start with understanding the problem statement from your stakeholder
+- Data exploration: Origin of the data. Structure, volume, granularity and frequency of your data
+- Data modeling: Structure how the eventual output should look like taking into account of your consumer
+- Data transformation: Filter, enrich, standardize and aggregate the data
+- Data quality: Check data trends, look for missing data gaps and anomalies
+
+I have considered this advice when developing my project.
+
+Some other points that I have learned while developing this project:
 - If we had to add data to the database everyday, we would do it incrementally, based on the last time the system extracted data.
 Most incremental extract scenarios use a last date modified/timestamp column.
 - If you’re extracting during the day/normal business hours, your extract queries can’t disrupt the existing OLTP processes (transactions).
 - Capturing Periodic Snapshots of Data is essential to achieve Durability (ACID)
 - Coming up with messaging and alert procedures so that any fatal error or verification failure triggered phone calls
+
+
+### Logs
+I learned that logging is a top task that has to be perfomred in Data Engineering. There are lots of events that should be logged:
+- Start and stop events
+- Status
+- Errors and other exceptions
+- Audit information: analysis of rows added, for example
+- Testing and debugging information
+
+When considering how the logging information will be consumed, consider the following:
+- Who is the primary audience for these logs? What other audiences might need access to this information?
+- How will the data be reviewed? What format delivers the information in the clearest way possible?
+- Are there any security concerns that require user-level data filtering?
 
 
 ## Concepts learned
@@ -77,7 +105,7 @@ In this case we don't need to worry about these concepts, but it is good to keep
 
 ---
 
-HA (High Availability): A Cloud Databases HA instance group includes a source database instance and one or two replicas. If main fails, other will take the place until main is restored. It is important to create plan B, C, D in case something bad happens. We have to consider all possible failure scenarios. AWS facilitates snapshots, but we have to be proactive and do constant backups of our data (enough data to fix something if it recently failed, but not too much data that would conflict with the 3 Vs (volume in particular))
+HA (High Availability): A Cloud Databases HA instance group includes a source database instance and one or two replicas. If main fails, other will take the place until main is restored. It is important to create plan B, C, D in case something bad happens. We have to consider all possible failure scenarios. AWS facilitates snapshots, but we have to be proactive and do constant backups of our data (enough data to fix something if it recently failed, but not too much data that would conflict with the 3 Vs (volume in particular). Keep data as long as needed, but not more)
 
 ---
 
@@ -104,8 +132,10 @@ STAR schema is the most widely approach used to develop data warehouses. It is d
 
 ---
 
-**Loading and staging phases**
-//TODO
+**Staging**
+A staging area, or landing zone, is an intermediate storage area used for data processing during the extract, transform and load (ETL) process. The data staging area sits between the data source and the data target, which are often data warehouses.
+
+In our case, we only had one table but in more complex project we would need a something in between to the source and the target.
 
 ---
 
