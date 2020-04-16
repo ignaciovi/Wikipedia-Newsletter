@@ -1,4 +1,5 @@
 import requests
+import logging
 from datetime import datetime
 
 def retrieve_wikipedia_info():
@@ -11,11 +12,11 @@ def retrieve_wikipedia_info():
     try:
         r = requests.get(url)
     except requests.exceptions.Timeout:
-        # Maybe set up for a retry, or continue in a retry loop
+        logging.debug('Request URL Timeout')
     except requests.exceptions.TooManyRedirects:
-        # Tell the user their URL was bad and try a different one
+        logging.debug('Request URL TooManyRedirects')
     except requests.exceptions.RequestException as e:
-        logging.debug('')
+        logging.debug('Request URL RequestException')
         raise SystemExit(e)
 
     html_content = str(r.text)
