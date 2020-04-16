@@ -3,7 +3,7 @@ from config import config
 import re
 
 def load_wikipedia_data(data):
-    """ Connect to the PostgreSQL database server """
+    ''' Connect to the PostgreSQL database server '''
 
     conn = None
     try:
@@ -19,7 +19,7 @@ def load_wikipedia_data(data):
         
         
         print('Inserting data:')   
-        cur.execute("INSERT INTO wiki_timebox_data (data) VALUES ('{}')".format(data))
+        cur.execute('INSERT INTO wiki_timebox_data (data) VALUES ('{}')'.format(data))
         print('Data inserted')
        
        # close the communication with the PostgreSQL

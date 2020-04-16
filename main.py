@@ -1,6 +1,7 @@
 import time
 import csv
 import luigi
+import logging
 from datetime import datetime
 from retrieve_wikipedia_info import retrieve_wikipedia_info
 from transform_wikipedia_data import transform_wikipedia_data
@@ -11,6 +12,9 @@ from config import config
 from luigi.contrib.s3 import S3Target, S3Client
 from time import strftime
 
+logging.basicConfig(filename='logs/etl.log', format='%(asctime)s %(message)s')
+logging.getLogger().setLevel(logging.DEBUG)
+
 # Task A
 # Fetch data from wikipedia and store it in txt file
 class RetrieveWikipediaInfo(luigi.Task):
@@ -20,7 +24,7 @@ class RetrieveWikipediaInfo(luigi.Task):
     def output(self):
         params = config(section='s3')
         client = S3Client(**params)
-        return S3Target('s3://s3-bucket-wikidata/{}/wikipedia_info_api.txt'.format(strftime("%Y-%m-%d")), format=UTF8, client=client)
+        return S3Target('s3://s3-bucket-wikidata/{}/wikipedia_info_api.txt'.format(strftime('%Y-%m-%d')), format=UTF8, client=client)
  
     def run(self):
         wikipedia_info_content = retrieve_wikipedia_info()
@@ -36,7 +40,7 @@ class TransformWikipediaInfo(luigi.Task):
     def output(self):
         params = config(section='s3')
         client = S3Client(**params)
-        return S3Target('s3://s3-bucket-wikidata/{}/wikipedia_info_output.csv'.format(strftime("%Y-%m-%d")), format=UTF8, client=client)
+        return S3Target('s3://s3-bucket-wikidata/{}/wikipedia_info_output.csv'.format(strftime('%Y-%m-%d')), format=UTF8, client=client)
 
     def run(self):
         with self.input().open() as infile, self.output().open('w') as outfile:
@@ -67,8 +71,8 @@ class LoadWikipediaInfoSQL(luigi.Task):
         with self.input().open() as infile:
             csv_reader = reader(infile)
             for row in csv_reader:
-                if row[1] != "event":
-                    query = u"INSERT INTO wiki_timebox_data (year, event) VALUES ('{}', '{}')".format(row[0], row[1].replace("'", ""))
+                if row[1] != 'event':
+                    query = u'INSERT INTO wiki_timebox_data (year, event) VALUES ('{}', '{}')'.format(row[0], row[1].replace("'", ""))
                     cursor.execute(query)
 
                     # Update marker table
