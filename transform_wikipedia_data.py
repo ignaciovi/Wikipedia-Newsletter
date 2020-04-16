@@ -1,4 +1,3 @@
-import re
 from bs4 import BeautifulSoup
 
 def transform_wikipedia_data(data):
