@@ -3,6 +3,9 @@ from bs4 import BeautifulSoup
 
 def transform_wikipedia_data(data):
     '''Retrieve events from html wikipedia page'''
+
+    logging.basicConfig(filename='logs/etl.log', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    logging.getLogger().setLevel(logging.DEBUG)
     
     try: 
         soup = BeautifulSoup(data, 'html.parser')
@@ -12,7 +15,7 @@ def transform_wikipedia_data(data):
         tdTags = children[0].find_all('li')
         output = [tag.text.split(' – ') for tag in tdTags]
     except:
-        logging.debug('Error getting URL events')
+        logging.exception('Error getting URL events')
         return None
 
     return output

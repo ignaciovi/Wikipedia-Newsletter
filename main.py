@@ -12,7 +12,7 @@ from config import config
 from luigi.contrib.s3 import S3Target, S3Client
 from time import strftime
 
-logging.basicConfig(filename='logs/etl.log', format='%(asctime)s %(message)s')
+logging.basicConfig(filename='logs/etl.log', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logging.getLogger().setLevel(logging.DEBUG)
 
 # Task A
@@ -27,6 +27,7 @@ class RetrieveWikipediaInfo(luigi.Task):
         return S3Target('s3://s3-bucket-wikidata/{}/wikipedia_info_api.txt'.format(strftime('%Y-%m-%d')), format=UTF8, client=client)
  
     def run(self):
+        logging.info('Running RetrieveWikipediaInfo')
         wikipedia_info_content = retrieve_wikipedia_info()
         with self.output().open('w') as outfile:
             outfile.write(wikipedia_info_content)
@@ -43,6 +44,7 @@ class TransformWikipediaInfo(luigi.Task):
         return S3Target('s3://s3-bucket-wikidata/{}/wikipedia_info_output.csv'.format(strftime('%Y-%m-%d')), format=UTF8, client=client)
 
     def run(self):
+        logging.info('Running TransformWikipediaInfo')
         with self.input().open() as infile, self.output().open('w') as outfile:
             fieldnames = ['year', 'event']
             writer = csv.DictWriter(outfile, delimiter=',', lineterminator='\n', fieldnames=fieldnames)
@@ -63,6 +65,8 @@ class LoadWikipediaInfoSQL(luigi.Task):
         return PostgresTarget(**params)
 
     def  run(self):
+        logging.info('Running LoadWikipediaInfoSQL')
+        logging.info('Connecting to the PostgreSQL database...')
         output=self.output()
         connection = output.connect()
         connection.set_client_encoding('UTF8')
@@ -74,12 +78,13 @@ class LoadWikipediaInfoSQL(luigi.Task):
                 if row[1] != 'event':
                     query = u'INSERT INTO wiki_timebox_data (year, event) VALUES ('{}', '{}')'.format(row[0], row[1].replace("'", ""))
                     cursor.execute(query)
-
-                    # Update marker table
                     self.output().touch(connection)
 
                 connection.commit()
+                logging.info('Row inserted')
             connection.close()
+            logging.info('Database connection closed.')
           
 if __name__ == '__main__':
+    logging.info('Running pipeline')
     luigi.run()
