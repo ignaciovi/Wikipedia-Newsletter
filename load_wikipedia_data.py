@@ -4,9 +4,7 @@ import re
 
 def load_wikipedia_data(data):
     """ Connect to the PostgreSQL database server """
-    output2 = re.sub(' +', ' ', data)
-    output3 = re.sub(r'\\', '', output2)
-    output4 = re.sub(r'\'', '', output3)
+
     conn = None
     try:
         # read connection parameters
@@ -21,7 +19,7 @@ def load_wikipedia_data(data):
         
         
         print('Inserting data:')   
-        cur.execute("INSERT INTO wiki_timebox_data (data) VALUES ('{}')".format(output4))
+        cur.execute("INSERT INTO wiki_timebox_data (data) VALUES ('{}')".format(data))
         print('Data inserted')
        
        # close the communication with the PostgreSQL
